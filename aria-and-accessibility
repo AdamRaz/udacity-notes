@@ -1,1 +1,431 @@
-# notes on their way!
+# Section 3: Exploring JS - Objects, Tools and Testing
+
+## Lesson 1 - Accessibility Overview
+
+Good accessibility or "a11y" - making sure all users can access the content in your sites and apps. Making sure you consider accessibility at the start of your process will ensure your final product is more polished and works for more people.
+
+**Note**: We often shorten the word "accessibility" to "a11y" because there's 11 letters between the "A" and "Y" in the word "Accessibility". Sometimes you'll see this pattern used in other contexts like i18n for "internationalization" and l10n for "localization".
+
+
+Making sites accessible to people experiencing a temporary/permanent disability or impairment makes site better for everyone. Examples:
+
+* using simple, clean site design helps people with ADD, autism or cognitive impairment by reducing stress and cognitive load (most people dislike stress, so in the end this is better for all)
+* adding site keyboard controls or screen reader compatibility or visual prompts etc. helps those with a disability and anyone who is having difficulty at the time (situational impairments like being unable to listen to audio in a noisy environment or open office space).
+* impairments:
+    * open office space (audio level restrictions)
+    * holding baby in one arm (situational, motor impairment)
+    * blindness
+    * deafness
+    * concussion ( temporary visual, motor, cognitive impairment)
+    * RSI is a motor impairment (typically a temporary impairment although, over a long period of use, could become permanent.)
+
+WCAG - wb content accessibility guidelines
+POUR
+* Perceive - can it be perceived in different ways? Sight, sound? For all users?
+* Operable - e.g. hover function not possible for people without a mouse!
+* understandable - both content and interface
+* Robust - can content be consumed by wide variety of user agents
+
+## Lesson 2 - Focus
+
+Tab order - some elements implicitly added to tab order (e.g. input, button, select), some not (paragraphs, image, headers).
+
+Tab, Shift+Tab to change focus forward and back.
+
+No need to allow focus if user will not interact with it or provide some sort of input.
+
+DOM (HTML code) order determines tab order - can change by removing elements from main flow of page e.g. with CSS floats, check tab order is OK manually every so often!
+
+WebAIM WCAG 2.0 checklist - meaningful lists, tab order should make sense.
+
+tabindex
+
+set tabindex="0" in html inside element tag to add element to natural tab order. value of -1 removes element from natural tab order.
+
+can use an elements focus() method to focus on element (and scroll automatically with false flag):
+
+`<element>.focus();`
+
+### managing focus
+
+for things like scrolling to a section of single page apps (e.g. navigation links that change page content without page refresh or scroll to a section)
+
+process: listen for click or Enter command, update page content if needed, call focus() on element within new section to allow user to skip over all the nav links and have focus starting immediately inside the content they just clicked to see.
+
+### skipping links
+
+add initial link, off screen,  that moves on screen when focussed, that links to main content id, something like this:
+
+html
+```html
+<a href="#main-content" class="skip-link">skip to main content</a>
+
+<main id="main-content" tabindex="-1">
+<!-- tabindex is for older browsers that don't auo move focus on clicking named anchors -->
+```
+
+css
+```css
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    z-index: 100;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+/*
+pseudo class that matches when parent/corresponding element has focus!
+*/
+```
+
+### keyboard design patters
+
+ARIA specs show kind of behaviours components have and what your similar custom things should have
+
+roving focus example: see lesson 02 - 05-radio-group > radiogroup.js script
+
+### hidden focus
+
+Example: when a pop-in menu is not on-screen yet, but can still tab through items
+
+To find your missing focus you can type the following into your console:
+
+document.activeElement
+
+then check code to see if that element is focussable etc. or use e.g. chrome accessibility devTool extension and run accessibility audit
+
+set
+
+`display: none, or visibility: hidden`
+
+when element is off-screen to prevent focus, then set to:
+
+`display: block, or visibility: visible`
+
+when it is back on-screen.
+
+### keyboard traps
+
+useful for modal / pop-up dialogs, problem if a drop down - you want tab key to allow user to switch to different drop-downs
+
+remember to convert to array if you want to process elements received from querySelector:
+
+
+
+```
+htmlNodeList = document.querySelectorAll('div, button, iframe, a, input');
+elementsInArray = Array.prototype.slice.call(htmlNodeList)
+
+```
+
+
+
+modals:
+
+See if can use a dialog!
+https://developer.mozilla.org/en-US/docs/Web/HTML/Element/dialog
+
+
+## lesson 3
+### semantics/ affordances
+using familiar structutres to make thins obvious
+
+If set up accessibility info well, screen reader or other tools should be able to identify, for each page component (focusable): role, name, state, value
+
+example for a text input box
+* role: edit text
+* name/label: your email address
+
+accessibility (a11y) tree, e.g. main -> form -> checkbox area and button
+a11y tree shows same info as DOM tree (divs and all! I think)
+
+labels
+
+can wrap or link via id to allow the label to activate the input and provide the 'label' to a11y tools
+
+```html
+<!-- option 1: -->
+<label>
+    <input type="checkbox" checked name="jLetter">
+    Receive Promotional Offers?
+</label>
+
+<!-- option 2: -->
+<input type="checkbox" checked name="jLetter" id="newsletter">
+<label for="newsletter">Receive Promotional Offers?</label>
+```
+so here:
+* role - checkbox
+* name/label - Receive Promotional Offers?
+* value -
+* state - checked
+
+
+* role -
+* name/label -
+* value -
+* state -
+
+### alt tag
+
+at least have blank alt tag to remove from a11y tree and prevent screen reader from reading a weird image file name
+
+logo alt can just be logo name e.g. Apple, or Microsoft
+
+an alt tag on decorative images (e.g. a cart next to the words 'shopping cart') can duplicate info... so use blank alt tag.
+
+
+## lesson 4 - navigating content
+
+To see headings on a webpage, use this in the console:
+
+JavaScript headings snippet:
+```javascript
+for (var i = 0, headings = $$('h1,h2,h3,h4,h5,h6');
+     i < headings.length; i++) {
+   console.log(headings[i].textContent.trim() + " " +  
+               headings[i].tagName,
+               headings[i]);
+}
+```
+
+Should use headings appropriate for page structur (section is a subsection of this, one higher than this etc.), NOT for big/small text, that is for CSS to cake care of!
+
+Can create offscreen a11y structure like so:
+
+```html
+<main class="container">
+    <h2 class="offscreen">Top story</h2>
+    <!-- add css style to pull the h2 off visible screen -->
+    <article class="main-story">
+
+```
+
+### links
+
+anything that behaves as alink should always have `<a href="something">`, no exceptions.
+
+This:
+* shows up in screen reader link list
+* works with keyboard control
+* can be bookmarked
+
+Avoide anti-patterns like:
+
+* span with a class of 'link' and an onclick attribute that calls a function (e.g. to scroll the page)
+* anchor tag with onclick function and no href...
+* anchor tag with bad href e.g. href="#" (and maybe an onclick function that takes job of actually linking somewhere)
+* image/logo contained in an anchor tag without an alt. Always have an alt!
+* bad link text, don't just have 'learn more' in a section on Tennis. Use 'learn more about Tennis here' instead.
+
+Keep links as actual links (anchor tags with href) and buttons as buttons etc. Don't make spans that look like links when they should be links.
+
+### Landmarks
+
+try and use: header, nav, main, section, article, aside, footer in both HTML and CSS isntead of classes (for their specific general use cases) to allow extra semantic info to screen readers etc.
+
+advice: use meaningful text, headings, page structure
+
+
+
+
+## lesson 5 - ARIA
+semantic info
+
+so far:
+DOM order
+focus
+keyboard
+labels
+headings
+landmarks
+links
+
+WAI = Web Accessibility Initiative
+ARIA = Accessible Rich Internet Applications
+
+ARIA example:
+http://udacity.github.io/ud891/lesson5-semantics-aria/02-why-aria/index.html
+
+adding to html properties to simulate native checkbox (adding to custome div for example)
+
+role="checkbox"
+aria-checked="true"
+
+```html
+      <div tabindex="0" class="checkbox" checked role="checkbox" aria-checked="true">
+        Tim-Tams
+      </div>
+
+      <div>
+        <label>
+          <input type="checkbox" checked>
+          Tim-Tams
+        </label>
+      </div>
+```
+
+other aria expressions: aria-expanded, aria-label (for e.g. a button that has no image/alt), aria-controls (link to another elements id/ use that id as the value for aria-controls)
+other roles: 'switch', 'alert'
+
+
+### converying role accurately
+
+role and tabindex attributes in same place (on same custom element) so focus ends up where it should
+
+giving an element a role - you are promising it will have those features, e.g. can toggle 'checkbox' with click or space bar
+
+aria-label (labellable elements only? overides text content for labellin purposes)
+
+aria-labelledby (for any elements, put on element to be labelled, refer to id of another element, can refer to hidden elements, overrides other labels, even aria-label, can take a list of ids as input & contatenates the labels)
+
+label examples:
+
+```html
+<button aria-label="Gumnut">
+Eucalyptus
+</button>
+<!-- label is Gumnut -->
+
+<div role="button">
+Wombat
+</div>
+<!-- normally no label for div, not put on a11y tree, but the button role puts it on a11y tree and so teh content 'Wombat' is the basic label -->
+
+<input type="checkbox" name="roo">
+<label for="roo">Kangaroo</label>
+<!-- here no label is produced, need and id="roo" on the original input element!-->
+
+<span role="checkbox">
+    aria-checked="false"
+    aria-labelledby="label"
+    aria-label="Not checked"
+</span>
+<span id="label">Wallaby</span>
+<!-- here label is overidded by aria-labelledby, producing a label of "label" -->
+```
+
+"ARIA in HTML spec, including guidance on what ARIA roles may and may not be used with which HTML elements: https://www.w3.org/TR/html-aria/"
+
+
+
+* aria-activedescendant - ID ref - to focus a specific child, when the parent gets focus (use ID or the element itself?)
+* aria-describedby - ID ref list - refrence another element with text content description of this element
+* aria-labelledby - ID ref list
+* aria-owns - ID ref list - for elements not connected in DOM/HTML, but user should * hear/see them as connected, create a relationship between elements, e.g. complex * list/dropdown menus with pop-up boxes that may not be parent/child in HTML. * Explicitly define order of children, by default aria-owns children come after normal * children.
+* aria-posinset - integer - for identifying items in a list, e.g. lazy rendering of 1000 element list, you only show 10, set posinset of each element to its intended order
+* aria-setsize - integer - actual total number of elements in a list, works with posinset (use for elements with role of option or listitem)
+
+examples:
+
+```html
+<div role="listbox">
+    <div role="option" aria-setsize="1000" aria-posinset="283">item 283 content</div>
+    <div role="option" aria-setsize="1000" aria-posinset="284">item 284 content</div>
+</div>
+
+```
+
+
+### hidden/out-of-view elements:
+
+elements using the below are not put into a11y tree:
+* visibility: hidden
+* display: none
+* html element attribute 'hidden'
+
+Can use off-screen elements to stay on a11y tree but not be visible, e.g. apply a class to all info-only elements:
+
+```css
+.screenreader {
+    position: absolute;
+    left: -10000px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+}
+```
+
+aria-label provides screen only info
+
+aria-describedby attribute can reference hidden element e.g.
+```html
+<div role="tree" aria-describedby="tree-help">
+</div>
+<div hidden id="tree-help">
+    To expand tree sections, do this and this...blah... blah...
+</div>
+```
+
+aria-hidden="true" html attribute will hide element and ll children from a11y tree (except where aria-labelledby and aria-describedby is used)
+
+```html
+<div role="treeitem" aria-hidden>
+    Semantics
+</div>
+<!-- "Semantics" is label as aria-hidden attribute doesn't have explicit "true" value-->
+
+<button hidden>
+    Sign up
+</button>
+<!-- no label -->
+
+<span role="checkbox" aria-labelledby="label">
+    <span id="label" hidden>
+        Styling
+    </span>
+</span>
+<!-- "Styling" is label - can use hidden item as labelling item-->
+
+<span role="button">
+    <span class="icon icon-menu" role="img" aria-label="menu">
+    </span>
+</span>
+<!-- a11y label is "menu" , role of button is on a11y tree, content is default label and the content evaluates to label of menu - uses its computed label as contents-->
+```
+
+### immediate updates, aria-live
+
+3 levels: "off", "polite", "assertive"
+
+apply aria-live="polite" to an element to make it and its children a 'live region' so info is called out to user right after any ongoing audio (polite)  or immediately (assertive)
+
+```html
+<div aria-live="polite" class="chat-history">
+<!-- live region, applies for all children -->
+    <div class="chat-bubble left">
+        <div class="offscreen">
+        <!-- for a11y tree and screen reader -->
+            Cathy says
+        </div>
+        <!-- actual chat message -->
+        Sure!
+    </div>
+</div>
+```
+
+#### fixing problems with aria-live
+try and make sure live region is present on initial page load
+
+triggering alerts, content changes:
+* live region (a descendant element) hidden -> visible
+* change live region content
+* append new live region
+
+#### atomic, relevant, busy
+
+aria-atomic="true" -> read out entire block on update on any part
+aria-relevant="additions text" (this is default anyway) determines what is considered an update and notified to user, options: additions (of elements), removals (of elements), text, all.
+aria-busy="true" -> temporarily ignore updates.
+
+
+### modals
+
+control screen reader behaviour inresponse to modals
+
+prevent reader tabbing behind modal by:
+* wrapping all main content (including header and footer) in a div that has aria-hidden attribute (false by default?) and set to true when modal displays
+* set role of modal div to "dialog" to get reader to announce it as a modal with its title/description
