@@ -1,2 +1,4 @@
 # udacity-notes
-markdown and tex notes on the udacity FEND nanodegree
+markdown and text notes on the udacity FEND nanodegree
+
+Currently just notes on ARIA and accessibility
